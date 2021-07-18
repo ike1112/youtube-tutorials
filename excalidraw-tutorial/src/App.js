@@ -1,14 +1,22 @@
 import React, { useEffect, useLayoutEffect, useState } from "react";
-import rough from "roughjs/bundled/rough.esm";
 
-const generator = rough.generator();
+const createElement = (id, x1, y1, x2, y2, type) => ({ id, x1, y1, x2, y2, type });
 
-const createElement = (id, x1, y1, x2, y2, type) => {
-  const roughElement =
-    type === "line"
-      ? generator.line(x1, y1, x2, y2)
-      : generator.rectangle(x1, y1, x2 - x1, y2 - y1);
-  return { id, x1, y1, x2, y2, type, roughElement };
+const draw = (context, element) => {
+  const { x1, y1, x2, y2, type } = element;
+  switch (type) {
+    case "rectangle":
+      context.strokeRect(x1, y1, x2 - x1, y2 - y1);
+      break;
+    case "line":
+      context.beginPath();
+      context.moveTo(x1, y1);
+      context.lineTo(x2, y2);
+      context.stroke();
+      break;
+    default:
+      throw Error("Type not recognised");
+  }
 };
 
 const nearPoint = (x, y, x1, y1, name) => {
@@ -128,9 +136,7 @@ const App = () => {
     const context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    const roughCanvas = rough.canvas(canvas);
-
-    elements.forEach(({ roughElement }) => roughCanvas.draw(roughElement));
+    elements.forEach(element => draw(context, element));
   }, [elements]);
 
   useEffect(() => {
